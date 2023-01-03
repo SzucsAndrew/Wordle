@@ -1,0 +1,279 @@
+﻿@page
+@using Wordle.Web.Helpers
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+<h2>Wordle</h2>
+<div id="board">
+    @for (int i = 0; i < 6; i++)
+    {
+        <div class="letter-row">
+        @for (int j = 0; j < 5; j++)
+        {
+            <div class="letter-box"></div>
+        }
+        </div>
+    }
+</div>
+<div id="keyboard">
+    <div class="btn-row">
+    @foreach (var letter in KeyboardHelper.FirsKeys)
+    {
+        <a class="btn btn-primary" onclick="onClickLetter('@letter')">@letter</a>
+    }
+    </div>
+    <div class="btn-row">
+    @foreach (var letter in KeyboardHelper.SecondKeys)
+    {
+        <a class="btn btn-primary" onclick="onClickLetter('@letter')">@letter</a>
+    }
+    </div>
+    <div class="btn-row">
+    @foreach (var letter in KeyboardHelper.ThirdKeys)
+    {
+        <a class="btn btn-primary" onclick="onClickLetter('@letter')">@letter</a>
+    }
+    </div>
+    <div class="btn-row">
+        <a class="btn btn-danger" onclick="onClickRemove()">Remove</a>
+    @foreach (var letter in KeyboardHelper.FourthKeys)
+    {
+        <a class="btn btn-primary" onclick="onClickLetter('@letter')">@letter</a>
+    }
+        <a class="btn btn-dark" onclick="onClickEnter()">Enter</a>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal fade" id="gameModal" tabindex="-1" aria-labelledby="gameModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="gameModalLabel">Wordle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="modalText"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="restartGame()">Restart?</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="userModalLabel">User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <label for="username">User name: </label><input type="text" id="username"/>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="GetUser()">Ok</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Error messages -->
+<div class="alert alert-danger fade show" id="errorMessage" role="alert">
+  This is <strong>not</strong> a word.
+</div>
+
+<script>
+function onclickModal(text) {
+    $('#modalText').text(text)
+    $('#gameModal').modal('show'); 
+}
+
+function restartGame() {
+    window.location.reload();
+}
+
+window.addEventListener("load", (event) => {
+  $('#userModal').modal('show');
+  $('#errorMessage').hide();
+});
+
+const ROWMAXLENGTH = 6;
+const MaxColumnLength = 5;
+
+let hashedUserId;
+let currentRow = 0;
+let currentColumn = 0;
+let startDate;
+
+function GetUser() {
+    $.ajax({
+        url: '@Url.Action("GetUserId", "Wordle")',
+        contentType:"application/json",
+        type: 'GET',
+        data:  {
+            username: document.getElementById('username').value
+        },
+        success: function(data) {
+            hashedUserId = data;
+            $('#userModal').modal('hide');
+            startDate = new Date();
+        }
+    });
+}
+
+function onClickLetter(letter)
+{
+    if (currentColumn > 4) { return; }
+
+    let row = document.getElementsByClassName("letter-row")[currentRow];
+    let box = row.children[currentColumn];
+    box.textContent = letter;
+
+    currentColumn++;
+}
+
+function onClickRemove()
+{
+    if (currentColumn < 0) { return; }
+
+    if (currentColumn !== 0) {
+        currentColumn--;
+    }
+    let row = document.getElementsByClassName("letter-row")[currentRow];
+    let box = row.children[currentColumn];
+    box.textContent = '';
+}
+
+function onClickEnter()
+{
+    IsWordValid();
+}
+
+function IsWordValid()
+{
+    $.ajax({
+        url: '@Url.Action("IsValidWord", "Wordle")',
+        data: {
+            word: GetUserText()
+        },
+        success: function(data) {
+            if (data === true) {
+                CheckWords();
+            }
+            else {
+                $("#errorMessage").fadeTo(2000, 500).slideUp(500, function(){
+                    $("#errorMessage").slideUp(500);
+                });
+            }
+        }
+    });
+}
+
+function CheckWords()
+{
+    var requestData = new Object();
+    requestData.HashedWordId = "@Model.WordId";
+    requestData.UserText = GetUserText();
+
+    $.ajax({
+        url: '@Url.Action("Check", "Wordle")',
+        contentType:"application/json",
+        type: 'POST',
+        data: JSON.stringify(requestData),
+        success: function(data) {
+            if (data) {
+                ColorTiles(data);
+                if (CheckWin(data)) {
+                    console.log('WON');
+                    SaveMatch(true, requestData.HashedWordId);
+                    onclickModal('Congratulation you win!!! :)');
+                }
+                else {
+                    if (CheckLose()) {
+                        console.log('LOSE');
+                        SaveMatch(false, requestData.HashedWordId);
+                        onclickModal('Sorry you lose :/');
+                    }
+                    else {
+                        console.log('NEXT ROUND');
+                        currentRow++;
+                        currentColumn = 0;
+                    }
+                }
+            }
+        }
+    });
+}
+
+function SaveMatch(won, hashedWordId) {
+    var match = new Object();
+    match.HashedWordId = hashedWordId;
+    match.HashedUserId = hashedUserId;
+    match.Attemt = currentRow;
+    match.Won = won;
+    match.Duration = GetDuration();
+
+    $.ajax({
+        url: '@Url.Action("SaveMatch", "Wordle")',
+        contentType: "application/json",
+        type: 'PUT',
+        data: JSON.stringify(match)
+    });
+}
+
+function GetDuration() {
+    var endDate = new Date();
+    var duration = new Date(endDate - startDate);
+    var formattedHour = ("0" + duration.getUTCHours()).slice(-2);
+    var formattedMinutes = ("0" + duration.getUTCMinutes()).slice(-2);
+    var formattedSeconds = ("0" + duration.getUTCSeconds()).slice(-2);
+
+    return formattedHour + ':' + formattedMinutes + ':' + formattedSeconds;
+}
+
+function CheckWin(data)
+{
+    for (let i = 0; i < data.length; i++) {
+        if (data[i] !== 1) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function CheckLose() {
+    return currentRow === ROWMAXLENGTH;
+}
+
+function ColorTiles(data)
+{
+    let row = document.getElementsByClassName("letter-row")[currentRow];
+    for (let i = 0; i < data.length; i++) {
+        if (data[i] === 1) {
+            row.children[i].classList.add('correct', 'filled-box');
+        }
+        else if (data[i] === 2) {
+            row.children[i].classList.add('include', 'filled-box');
+        }
+        else {
+            row.children[i].classList.add('notInclude', 'filled-box');
+        }
+    }
+}
+
+function GetUserText()
+{
+    let row = document.getElementsByClassName("letter-row")[currentRow];
+    let word = [];
+    for (let i = 0; i < row.children.length; i++) { 
+        let letter = row.children[i].textContent;
+        word.push(letter);
+    }
+    return word.join('');
+}
+</script>

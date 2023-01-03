@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wordle.Web", "Wordle.Web\Wordle.Web.csproj", "{2A6FCBA7-E90F-47E0-A8D0-4245C1C37474}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wordle.Dll", "Wordle.Dll\Wordle.Dll.csproj", "{36157E13-26A2-4EA2-9E37-0BA8FCDDE329}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wordle.Data", "Wordle.Data\Wordle.Data.csproj", "{3873F182-5FD6-473A-9D86-435231D8CCC2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2A6FCBA7-E90F-47E0-A8D0-4245C1C37474}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A6FCBA7-E90F-47E0-A8D0-4245C1C37474}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A6FCBA7-E90F-47E0-A8D0-4245C1C37474}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A6FCBA7-E90F-47E0-A8D0-4245C1C37474}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36157E13-26A2-4EA2-9E37-0BA8FCDDE329}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36157E13-26A2-4EA2-9E37-0BA8FCDDE329}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36157E13-26A2-4EA2-9E37-0BA8FCDDE329}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36157E13-26A2-4EA2-9E37-0BA8FCDDE329}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3873F182-5FD6-473A-9D86-435231D8CCC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3873F182-5FD6-473A-9D86-435231D8CCC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3873F182-5FD6-473A-9D86-435231D8CCC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3873F182-5FD6-473A-9D86-435231D8CCC2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {22E449C5-DD5D-45AF-A0B2-6D5EBFEF2E87}
+	EndGlobalSection
+EndGlobal
